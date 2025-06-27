@@ -118,12 +118,12 @@ async function createShopifyDraftOrder(orderData, domain, accessToken) {
             use_customer_default_address: false,
             note: `Custom DIY Sweater Order - ${diyCode}-${wxyzCode}\n\nConfiguration:\n${JSON.stringify(orderData.configuration, null, 2)}\n\nCustomer Notes: ${orderData.notes || 'None'}`,
             tags: [
-                `DIY-${diyCode}`, 
-                `Config-${wxyzCode}`, 
-                'Custom-Sweater', 
-                'Microsite-Order',
-                `Total-${orderData.total_pieces}-pieces`
-            ],
+    `DIY-${diyCode}`, 
+    `Config-${wxyzCode}`, 
+    'Custom-Sweater', 
+    'Microsite-Order',
+    `Total-${orderData.total_pieces}-pieces`
+].join(','),
             invoice_sent_at: null, // Don't auto-send invoice
             status: 'open'
         }
