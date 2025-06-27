@@ -80,7 +80,7 @@ async function createShopifyDraftOrder(orderData, domain, accessToken) {
     Object.entries(orderData.quantities).forEach(([size, quantity]) => {
         if (quantity > 0) {
             lineItems.push({
-                product_id: product.id,
+                variant_id: product.variant_id,
                 quantity: parseInt(quantity),
                 properties: [
                     { name: 'DIY Code', value: `${diyCode}-${wxyzCode}` },
