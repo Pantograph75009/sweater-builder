@@ -1,0 +1,3003 @@
+<body>
+
+
+
+
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+
+    <title>Custom Sweater Builder</title>
+
+
+
+
+
+
+
+<!-- Custom Sweater Builder for Shopify Page -->
+
+<style>
+
+:root {
+
+  /* Baseline theme variables */
+
+  --color-scheme-text: 51, 51, 51;
+
+  --color-scheme-background: 255, 255, 255;
+
+  --color-scheme-accent: 210, 247, 22;
+
+  --color-scheme-accent-contrast: 0, 0, 0;
+
+  --spacing: 1rem;
+
+  --spacing-double: 2rem;
+
+  --spacing-half: 0.5rem;
+
+  --font-size-body: 1rem;
+
+  --font-size-small: 0.875rem;
+
+  --gridline-width: 1px;
+
+}
+
+
+
+* {
+
+  box-sizing: border-box;
+
+}
+
+
+
+.sweater-builder {
+
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+  max-width: 1200px;
+
+  margin: 0 auto;
+
+  padding: var(--spacing);
+
+  background: white;
+
+  color: rgb(var(--color-scheme-text));
+
+}
+
+
+
+.builder-container {
+
+  display: flex;
+
+  gap: var(--spacing-double);
+
+  align-items: flex-start;
+
+  flex-wrap: nowrap;
+
+  /* Prevent zoom-induced layout shifts */
+
+  min-height: 600px;
+
+}
+
+
+
+.preview-section {
+
+  flex: 0 0 60%;
+
+  min-width: 300px;
+
+  /* iPad specific fixes */
+
+  -webkit-flex-shrink: 0;
+
+  flex-shrink: 0;
+
+}
+
+.preview-container {
+
+  position: relative;
+
+  width: 100%;
+
+  max-width: 600px;
+
+  height: 500px;
+
+  min-height: 400px; /* Prevent shrinking below this */
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  background: white;
+
+  overflow: hidden;
+
+  border: none;
+
+  margin: 0 auto;
+
+  /* iPad zoom stability */
+
+  -webkit-transform: translateZ(0);
+
+  transform: translateZ(0);
+
+  will-change: transform;
+
+}
+
+
+
+.texture-background {
+
+  position: absolute;
+
+  top: 0;
+
+  left: 0;
+
+  width: 100%;
+
+  height: 100%;
+
+  background-repeat: repeat;
+
+  background-size: 200px auto;
+
+  background-position: center;
+
+  transition: all 0.3s ease;
+
+}
+
+
+
+.sweater-mask {
+
+  position: absolute;
+
+  top: 0;
+
+  left: 0;
+
+  width: 100%;
+
+  height: 100%;
+
+  mask-size: contain;
+
+  mask-repeat: no-repeat;
+
+  mask-position: center;
+
+  mask-mode: luminance;
+
+  -webkit-mask-size: contain;
+
+  -webkit-mask-repeat: no-repeat;
+
+  -webkit-mask-position: center;
+
+  -webkit-mask-mode: luminance;
+
+  background: inherit;
+
+}
+
+
+
+.sweater-outline {
+
+  max-width: 100%;
+
+  max-height: 100%;
+
+  width: auto;
+
+  height: auto;
+
+  object-fit: contain;
+
+  transition: opacity 0.3s ease;
+
+  position: relative;
+
+  z-index: 2;
+
+  mix-blend-mode: multiply;
+
+  opacity: 1.0;
+
+  /* iPad zoom stability */
+
+  -webkit-transform: translateZ(0);
+
+  transform: translateZ(0);
+
+}
+
+
+
+.image-placeholder {
+
+  text-align: center;
+
+  color: rgb(var(--color-scheme-text) / 0.6);
+
+  font-size: var(--font-size-small);
+
+  padding: var(--spacing);
+
+}
+
+
+
+.price-display {
+
+  font-size: 1.25rem;
+
+  font-weight: 700;
+
+  margin: var(--spacing-half) 0;
+
+  color: rgb(var(--color-scheme-text));
+
+}
+
+
+
+.add-to-cart-btn {
+
+  width: 100%;
+
+  padding: var(--spacing);
+
+  background: rgb(var(--color-scheme-text));
+
+  color: rgb(var(--color-scheme-background));
+
+  border: none;
+
+  font-size: var(--font-size-body);
+
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition: all 0.2s ease;
+
+  margin-top: var(--spacing-half);
+
+}
+
+
+
+.add-to-cart-btn:hover {
+
+  background: rgb(var(--color-scheme-text) / 0.8);
+
+}
+
+
+
+.options-section {
+
+  flex: 0 0 40%;
+
+  padding: var(--spacing);
+
+  background: white;
+
+}
+
+
+
+.option-group {
+
+  margin-bottom: var(--spacing);
+
+  font-size: 0.8rem;
+
+  line-height: 1.4;
+
+}
+
+
+
+.option-label {
+
+  font-weight: 600;
+
+  display: inline;
+
+}
+
+
+
+.option-buttons {
+
+  display: inline;
+
+  margin-left: 0.5rem;
+
+}
+
+
+
+.option-btn {
+
+  background: none;
+
+  border: none;
+
+  padding: 0;
+
+  margin: 0 0.2rem;
+
+  font-size: 0.8rem;
+
+  color: rgb(var(--color-scheme-text));
+
+  cursor: pointer;
+
+  text-decoration: none;
+
+  transition: all 0.2s ease;
+
+}
+
+
+
+.option-btn:hover {
+
+  color: rgb(var(--color-scheme-accent));
+
+  text-decoration: underline;
+
+}
+
+
+
+.option-btn.selected {
+
+  color: rgb(var(--color-scheme-accent));
+
+  text-decoration: underline;
+
+  font-weight: 600;
+
+}
+
+
+
+.upload-section {
+
+  margin-top: var(--spacing);
+
+  padding: var(--spacing);
+
+  background: #f8f8f8;
+
+  border-radius: 4px;
+
+  font-size: 0.75rem;
+
+}
+
+
+
+.upload-section select {
+
+  width: 100%;
+
+  padding: 0.25rem;
+
+  border: 1px solid #ccc;
+
+  border-radius: 2px;
+
+  background: white;
+
+  font-size: 0.75rem;
+
+}
+
+
+
+.upload-section input[type="range"] {
+
+  width: 100%;
+
+}
+
+
+
+.upload-section input[type="checkbox"] {
+
+  margin-right: 0.5rem;
+
+}
+
+
+
+/* Quick Buy Drawer Styles */
+
+.quick-buy-drawer {
+
+  position: fixed;
+
+  top: 0;
+
+  left: 0;
+
+  width: 100%;
+
+  height: 100%;
+
+  z-index: 9999;
+
+  visibility: hidden;
+
+  opacity: 0;
+
+  transition: visibility 0.3s, opacity 0.3s ease;
+
+}
+
+
+
+.quick-buy-drawer.open {
+
+  visibility: visible;
+
+  opacity: 1;
+
+}
+
+
+
+.drawer-overlay {
+
+  position: absolute;
+
+  top: 0;
+
+  left: 0;
+
+  width: 100%;
+
+  height: 100%;
+
+  background: rgba(0, 0, 0, 0.5);
+
+}
+
+
+
+.drawer-content {
+
+  position: absolute;
+
+  top: 0;
+
+  right: 0;
+
+  width: 500px;
+
+  max-width: 90vw;
+
+  height: 100%;
+
+  background: white;
+
+  transform: translateX(100%);
+
+  transition: transform 0.3s ease;
+
+  display: flex;
+
+  flex-direction: column;
+
+  box-shadow: -4px 0 20px rgba(0, 0, 0, 0.15);
+
+}
+
+
+
+.quick-buy-drawer.open .drawer-content {
+
+  transform: translateX(0);
+
+}
+
+
+
+.drawer-header {
+
+  padding: var(--spacing);
+
+  border-bottom: 1px solid #eee;
+
+  display: flex;
+
+  justify-content: space-between;
+
+  align-items: center;
+
+  background: #f8f8f8;
+
+}
+
+
+
+.drawer-header h3 {
+
+  margin: 0;
+
+  font-size: 1.1rem;
+
+  font-weight: 600;
+
+}
+
+
+
+.close-btn {
+
+  background: none;
+
+  border: none;
+
+  font-size: 1.5rem;
+
+  cursor: pointer;
+
+  padding: 0;
+
+  width: 30px;
+
+  height: 30px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+}
+
+
+
+.drawer-body {
+
+  flex: 1;
+
+  padding: var(--spacing);
+
+  overflow-y: auto;
+
+}
+
+
+
+.config-summary {
+
+  background: #f8f8f8;
+
+  padding: var(--spacing);
+
+  border-radius: 4px;
+
+  margin-bottom: var(--spacing);
+
+}
+
+
+
+.config-summary h4 {
+
+  margin: 0 0 0.5rem 0;
+
+  font-size: 0.9rem;
+
+  font-weight: 600;
+
+}
+
+
+
+.config-summary div {
+
+  font-size: 0.8rem;
+
+  line-height: 1.4;
+
+  margin-bottom: 0.3rem;
+
+}
+
+
+
+.config-price {
+
+  font-size: 1.1rem !important;
+
+  font-weight: 600 !important;
+
+  margin-top: 0.5rem !important;
+
+  color: rgb(var(--color-scheme-text)) !important;
+
+}
+
+
+
+.form-section {
+
+  margin-bottom: var(--spacing);
+
+}
+
+
+
+.form-section label {
+
+  display: block;
+
+  font-weight: 600;
+
+  margin-bottom: 0.5rem;
+
+  font-size: 0.9rem;
+
+}
+
+
+
+.form-section input,
+
+.form-section textarea {
+
+  width: 100%;
+
+  padding: 0.75rem;
+
+  border: 1px solid #ddd;
+
+  border-radius: 4px;
+
+  font-size: 0.9rem;
+
+}
+
+
+
+.form-section textarea {
+
+  height: 80px;
+
+  resize: vertical;
+
+}
+
+
+
+.size-quantities {
+
+  border: 1px solid #ddd;
+
+  border-radius: 4px;
+
+  overflow: hidden;
+
+}
+
+
+
+.size-row {
+
+  display: flex;
+
+  align-items: center;
+
+  padding: 0.75rem;
+
+  border-bottom: 1px solid #eee;
+
+}
+
+
+
+.size-row:last-child {
+
+  border-bottom: none;
+
+}
+
+
+
+.size-label {
+
+  flex: 1;
+
+  font-weight: 600;
+
+  font-size: 0.9rem;
+
+}
+
+
+
+.quantity-controls {
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 0.5rem;
+
+}
+
+
+
+.quantity-controls button {
+
+  width: 30px;
+
+  height: 30px;
+
+  border: 1px solid #ddd;
+
+  background: white;
+
+  cursor: pointer;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  font-weight: 600;
+
+}
+
+
+
+.quantity-controls button:hover {
+
+  background: #f0f0f0;
+
+}
+
+
+
+.quantity-controls input {
+
+  width: 50px;
+
+  text-align: center;
+
+  border: 1px solid #ddd;
+
+  padding: 0.25rem;
+
+  margin: 0;
+
+}
+
+
+
+.total-quantity {
+
+  margin-top: 0.75rem;
+
+  padding-top: 0.75rem;
+
+  border-top: 1px solid #eee;
+
+  font-weight: 600;
+
+  text-align: center;
+
+}
+
+
+
+.drawer-footer {
+
+  padding: var(--spacing);
+
+  border-top: 1px solid #eee;
+
+  display: flex;
+
+  gap: var(--spacing-half);
+
+}
+
+
+
+.cancel-btn,
+
+.submit-btn {
+
+  flex: 1;
+
+  padding: var(--spacing);
+
+  border: none;
+
+  font-size: var(--font-size-body);
+
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition: all 0.2s ease;
+
+}
+
+
+
+.cancel-btn {
+
+  background: #f0f0f0;
+
+  color: rgb(var(--color-scheme-text));
+
+}
+
+
+
+.cancel-btn:hover {
+
+  background: #e0e0e0;
+
+}
+
+
+
+.submit-btn {
+
+  background: rgb(var(--color-scheme-text));
+
+  color: rgb(var(--color-scheme-background));
+
+}
+
+
+
+.submit-btn:hover {
+
+  background: rgb(var(--color-scheme-text) / 0.8);
+
+}
+
+
+
+.submit-btn:disabled {
+
+  background: #ccc;
+
+  cursor: not-allowed;
+
+}
+
+
+
+@media (max-width: 768px) {
+
+  .builder-container {
+
+    flex-direction: column;
+
+  }
+
+  
+
+  .preview-section, .options-section {
+
+    flex: none;
+
+    max-width: 100%;
+
+  }
+
+  
+
+  .drawer-content {
+
+    width: 100%;
+
+    max-width: 100vw;
+
+  }
+
+  
+
+  .size-row {
+
+    padding: 0.5rem;
+
+  }
+
+  
+
+  .quantity-controls button {
+
+    width: 35px;
+
+    height: 35px;
+
+  }
+
+}
+
+  /* iPad specific optimizations */
+
+@media (min-width: 768px) and (max-width: 1024px) {
+
+  .preview-container {
+
+    max-width: 500px;
+
+    height: 450px;
+
+    min-height: 400px;
+
+  }
+
+  
+
+  .builder-container {
+
+    gap: 1rem;
+
+  }
+
+  
+
+  /* Ensure images don't shrink on iPad zoom */
+
+  .sweater-outline {
+
+    min-width: 200px;
+
+    min-height: 200px;
+
+  }
+
+}
+
+
+
+/* Prevent zoom-related flex issues */
+
+@supports (-webkit-touch-callout: none) {
+
+  /* iOS/iPad specific */
+
+  .preview-section {
+
+    -webkit-flex-shrink: 0;
+
+    flex-shrink: 0;
+
+    min-width: 320px;
+
+  }
+
+  
+
+  .preview-container {
+
+    -webkit-transform: translate3d(0,0,0);
+
+    transform: translate3d(0,0,0);
+
+  }
+
+}
+
+</style>
+
+
+
+<div class="sweater-builder">
+
+  <div class="builder-container">
+
+    <!-- Preview Section -->
+
+    <div class="preview-section">
+
+      <div class="preview-container">
+
+        <div class="image-placeholder" id="imagePlaceholder">
+
+          <p>Loading sweater combinations...</p>
+
+          <p style="font-size: 0.75rem; margin-top: 0.5rem;">Format: [length]_[sleeve]_[style]_[collar]-[1-8].png</p>
+
+        </div>
+
+        
+
+        <!-- Texture Background (full coverage) -->
+
+        <div id="textureBackground" class="texture-background"></div>
+
+        
+
+        <!-- Masked Texture (sweater shape only) -->
+
+        <div id="textureLayer" class="sweater-mask">
+
+          <div id="maskedTexture" class="texture-background"></div>
+
+        </div>
+
+        
+
+        <!-- Outline Definition -->
+
+        <img id="sweaterOutline" class="sweater-outline" style="display: none;" alt="Sweater Outline">
+
+      </div>
+
+    </div>
+
+
+
+    <!-- Options Section -->
+
+    <div class="options-section">
+
+      <!-- Length -->
+
+      <div class="option-group">
+
+        <span class="option-label">Length:</span>
+
+        <span class="option-buttons">
+
+          <button class="option-btn selected" data-option="length" data-value="normal">Normal</button>
+
+          /
+
+          <button class="option-btn" data-option="length" data-value="cropped">Cropped</button>
+
+        </span>
+
+      </div>
+
+
+
+      <!-- Sleeve -->
+
+      <div class="option-group">
+
+        <span class="option-label">Sleeve:</span>
+
+        <span class="option-buttons">
+
+          <button class="option-btn selected" data-option="sleeve" data-value="long">Long</button>
+
+          /
+
+          <button class="option-btn" data-option="sleeve" data-value="short">Short</button>
+
+        </span>
+
+      </div>
+
+
+
+      <!-- Style -->
+
+      <div class="option-group">
+
+        <span class="option-label">Style:</span>
+
+        <span class="option-buttons">
+
+          <button class="option-btn selected" data-option="style" data-value="sweater">Sweater</button>
+
+          /
+
+          <button class="option-btn" data-option="style" data-value="cardigan">Cardigan</button>
+
+        </span>
+
+      </div>
+
+
+
+      <!-- Collar -->
+
+      <div class="option-group">
+
+        <span class="option-label">Collar:</span>
+
+        <span class="option-buttons">
+
+          <button class="option-btn selected" data-option="collar" data-value="crew">Crew</button>
+
+          /
+
+          <button class="option-btn" data-option="collar" data-value="polo">Polo</button>
+
+        </span>
+
+      </div>
+
+
+
+      <!-- Hem -->
+
+      <div class="option-group">
+
+        <span class="option-label">Hem:</span>
+
+        <span class="option-buttons">
+
+          <button class="option-btn selected" data-option="hem" data-value="tubular">Tubular</button>
+
+          /
+
+          <button class="option-btn" data-option="hem" data-value="rib">Ribbed</button>
+
+        </span>
+
+      </div>
+
+
+
+      <!-- Cuff -->
+
+      <div class="option-group">
+
+        <span class="option-label">Cuff:</span>
+
+        <span class="option-buttons">
+
+          <button class="option-btn selected" data-option="cuff" data-value="tubular">Tubular</button>
+
+          /
+
+          <button class="option-btn" data-option="cuff" data-value="rib">Ribbed</button>
+
+        </span>
+
+      </div>
+
+
+
+      <!-- Arms Slits -->
+
+      <div class="option-group">
+
+        <span class="option-label">Arms Slits:</span>
+
+        <span class="option-buttons">
+
+          <button class="option-btn" data-option="slits" data-value="slits">Slits</button>
+
+          /
+
+          <button class="option-btn selected" data-option="slits" data-value="noslits">No Slits</button>
+
+        </span>
+
+      </div>
+
+
+
+      <!-- Size -->
+
+      <div class="option-group">
+
+        <span class="option-label">Size:</span>
+
+        <span class="option-buttons">
+
+          <button class="option-btn" data-option="size" data-value="xs">XS</button>
+
+          /
+
+          <button class="option-btn selected" data-option="size" data-value="s">S</button>
+
+          /
+
+          <button class="option-btn" data-option="size" data-value="m">M</button>
+
+          /
+
+          <button class="option-btn" data-option="size" data-value="l">L</button>
+
+          /
+
+          <button class="option-btn" data-option="size" data-value="xl">XL</button>
+
+        </span>
+
+      </div>
+
+
+
+      <!-- Color -->
+
+      <div class="option-group">
+
+        <span class="option-label">Color:</span>
+
+        <span class="option-buttons">
+
+          <button class="option-btn selected" data-option="color" data-value="lights">Lights</button>
+
+          /
+
+          <button class="option-btn" data-option="color" data-value="blue_green_dark">Blue Green Dark</button>
+
+          /
+
+          <button class="option-btn" data-option="color" data-value="red_light_medium">Red Light Medium</button>
+
+          /
+
+          <button class="option-btn" data-option="color" data-value="blue_green_light">Blue Green Light</button>
+
+          /
+
+          <button class="option-btn" data-option="color" data-value="red_yellow_light">Red Yellow Light</button>
+
+          /
+
+          <button class="option-btn" data-option="color" data-value="light_medium_pink">Light Medium Pink</button>
+
+        </span>
+
+      </div>
+
+
+
+      <!-- Price and Cart Section -->
+
+      <div style="margin-top: var(--spacing-double); padding-top: var(--spacing); border-top: 1px solid #eee;">
+
+        <div class="price-display" id="priceDisplay">€110.40</div>
+
+        <button class="add-to-cart-btn" onclick="openQuickBuyDrawer()">Add to Order</button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+
+<!-- Quick Buy Drawer -->
+
+<div id="quickBuyDrawer" class="quick-buy-drawer">
+
+  <div class="drawer-overlay" onclick="closeQuickBuyDrawer()"></div>
+
+  <div class="drawer-content">
+
+    <div class="drawer-header">
+
+      <h3>Place Order - Custom Sweater</h3>
+
+      <button class="close-btn" onclick="closeQuickBuyDrawer()">×</button>
+
+    </div>
+
+    
+
+    <div class="drawer-body">
+
+      <!-- Current Configuration -->
+
+      <div class="config-summary">
+
+        <h4>Your Configuration:</h4>
+
+        <div id="configSummary"></div>
+
+        <div class="config-price" id="configPrice">€110.40</div>
+
+      </div>
+
+      
+
+      <!-- Customer Details -->
+
+      <div class="form-section">
+
+        <label for="customerName">Customer/Company Name *</label>
+
+        <input type="text" id="customerName" placeholder="Enter customer or company name" required>
+
+      </div>
+
+      
+
+      <div class="form-section">
+
+        <label for="customerEmail">Email Address</label>
+
+        <input type="email" id="customerEmail" placeholder="Enter email address">
+
+      </div>
+
+      
+
+      <!-- Quantity per Size -->
+
+      <div class="form-section">
+
+        <label>Quantity per Size:</label>
+
+        <div class="size-quantities">
+
+          <div class="size-row">
+
+            <span class="size-label">XS</span>
+
+            <div class="quantity-controls">
+
+              <button type="button" onclick="changeQuantity('xs', -1)">-</button>
+
+              <input type="number" id="qty-xs" value="0" min="0" readonly>
+
+              <button type="button" onclick="changeQuantity('xs', 1)">+</button>
+
+            </div>
+
+          </div>
+
+          <div class="size-row">
+
+            <span class="size-label">S</span>
+
+            <div class="quantity-controls">
+
+              <button type="button" onclick="changeQuantity('s', -1)">-</button>
+
+              <input type="number" id="qty-s" value="0" min="0" readonly>
+
+              <button type="button" onclick="changeQuantity('s', 1)">+</button>
+
+            </div>
+
+          </div>
+
+          <div class="size-row">
+
+            <span class="size-label">M</span>
+
+            <div class="quantity-controls">
+
+              <button type="button" onclick="changeQuantity('m', -1)">-</button>
+
+              <input type="number" id="qty-m" value="0" min="0" readonly>
+
+              <button type="button" onclick="changeQuantity('m', 1)">+</button>
+
+            </div>
+
+          </div>
+
+          <div class="size-row">
+
+            <span class="size-label">L</span>
+
+            <div class="quantity-controls">
+
+              <button type="button" onclick="changeQuantity('l', -1)">-</button>
+
+              <input type="number" id="qty-l" value="0" min="0" readonly>
+
+              <button type="button" onclick="changeQuantity('l', 1)">+</button>
+
+            </div>
+
+          </div>
+
+          <div class="size-row">
+
+            <span class="size-label">XL</span>
+
+            <div class="quantity-controls">
+
+              <button type="button" onclick="changeQuantity('xl', -1)">-</button>
+
+              <input type="number" id="qty-xl" value="0" min="0" readonly>
+
+              <button type="button" onclick="changeQuantity('xl', 1)">+</button>
+
+            </div>
+
+          </div>
+
+        </div>
+
+        <div class="total-quantity">Total Pieces: <span id="totalQuantity">0</span>
+
+</div>
+
+      </div>
+
+      
+
+      <!-- Notes -->
+
+      <div class="form-section">
+
+        <label for="orderNotes">Additional Notes</label>
+
+        <textarea id="orderNotes" placeholder="Any special requests or notes..."></textarea>
+
+      </div>
+
+    </div>
+
+    
+
+    <div class="drawer-footer">
+
+      <button class="cancel-btn" onclick="closeQuickBuyDrawer()">Cancel</button>
+
+      <button class="submit-btn" onclick="submitOrder()">Submit Order</button>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+
+<script>
+
+// Configuration
+
+const config = {
+
+    shopifyDomain: 'waste-yarn-project.myshopify.com',
+
+    productId: 'custom-sweater',
+
+    defaultPrice: 110.40
+
+};
+
+
+
+// Current selections
+
+let currentSelections = {
+
+    length: 'normal',
+
+    sleeve: 'long', 
+
+    style: 'sweater',
+
+    collar: 'crew',
+
+    hem: 'tubular',
+
+    cuff: 'tubular',
+
+    slits: 'noslits',
+
+    size: 's',
+
+    color: 'lights'
+
+};
+
+
+
+// Store uploaded images and textures
+
+let sweaterImages = {};
+
+let textureImages = {};
+
+
+
+// DIY PRODUCT MAPPING - WITH ACTUAL PRODUCT IDS
+
+const SHOPIFY_DIY_PRODUCTS = {
+
+    'DIY1111': { id: '9552915333448', price: 110.40 }, // Normal, Long, Sweater, Crew
+
+    'DIY1112': { id: '9552915398984', price: 120.90 }, // Normal, Long, Sweater, Polo
+
+    'DIY1121': { id: '9552915464520', price: 127.90 }, // Normal, Long, Cardigan, Crew
+
+    'DIY1122': { id: '9552915530056', price: 138.40 }, // Normal, Long, Cardigan, Polo
+
+    'DIY1211': { id: '9552915628360', price: 104.20 }, // Normal, Short, Sweater, Crew
+
+    'DIY1212': { id: '9552915726664', price: 114.70 }, // Normal, Short, Sweater, Polo
+
+    'DIY1221': { id: '9552915792200', price: 121.80 }, // Normal, Short, Cardigan, Crew
+
+    'DIY1222': { id: '9552915890504', price: 132.30 }, // Normal, Short, Cardigan, Polo
+
+    'DIY2111': { id: '9552915956040', price: 100.40 }, // Cropped, Long, Sweater, Crew
+
+    'DIY2112': { id: '9552916021576', price: 110.90 }, // Cropped, Long, Sweater, Polo
+
+    'DIY2121': { id: '9552916087112', price: 117.90 }, // Cropped, Long, Cardigan, Crew
+
+    'DIY2122': { id: '9552916119880', price: 128.40 }, // Cropped, Long, Cardigan, Polo
+
+    'DIY2211': { id: '9552916218184', price: 94.20 },  // Cropped, Short, Sweater, Crew
+
+    'DIY2212': { id: '9552916283720', price: 104.70 }, // Cropped, Short, Sweater, Polo
+
+    'DIY2221': { id: '9552916316488', price: 111.80 }, // Cropped, Short, Cardigan, Crew
+
+    'DIY2222': { id: '9552916414792', price: 122.30 }  // Cropped, Short, Cardigan, Polo
+
+};
+
+
+
+// Helper function to get current DIY code based on selections
+
+function getCurrentDIYCode() {
+
+    const length = currentSelections.length === 'normal' ? '1' : '2';
+
+    const sleeve = currentSelections.sleeve === 'long' ? '1' : '2';
+
+    const style = currentSelections.style === 'sweater' ? '1' : '2';
+
+    const collar = currentSelections.collar === 'crew' ? '1' : '2';
+
+    
+
+    return `DIY${length}${sleeve}${style}${collar}`;
+
+}
+
+
+
+// Helper function to get WXYZ properties
+
+function getWXYZProperties() {
+
+    const hem = currentSelections.hem === 'tubular' ? '1' : '2';
+
+    const cuff = currentSelections.cuff === 'tubular' ? '1' : '2';
+
+    const slits = currentSelections.slits === 'slits' ? '1' : '2';
+
+    
+
+    const colorMap = {
+
+        'lights': '1',
+
+        'blue_green_dark': '2', 
+
+        'red_light_medium': '3',
+
+        'blue_green_light': '4',
+
+        'red_yellow_light': '5',
+
+        'light_medium_pink': '6'
+
+    };
+
+    const color = colorMap[currentSelections.color] || '1';
+
+    
+
+    return `W${hem}X${cuff}Y${slits}Z${color}`;
+
+}
+
+
+
+// Convert hem/cuff/slits combination to number suffix (1-8)
+
+function getOptionSuffix(hem, cuff, slits) {
+
+    const combination = `${hem}_${cuff}_${slits}`;
+
+    
+
+    const suffixMap = {
+
+        'tubular_tubular_noslits': 1,
+
+        'tubular_tubular_slits': 2,
+
+        'rib_rib_noslits': 3,
+
+        'tubular_rib_noslits': 4,
+
+        'rib_tubular_noslits': 5,
+
+        'rib_rib_slits': 6,
+
+        'tubular_rib_slits': 7,
+
+        'rib_tubular_slits': 8
+
+    };
+
+    
+
+    return suffixMap[combination] || 1;
+
+}
+
+
+
+// Load production images
+
+function loadProductionImages() {
+
+    textureImages['lights'] = 'https://cdn.shopify.com/s/files/1/0106/7961/5524/files/lights_texture.png?v=1749811655';
+
+    textureImages['blue_green_dark'] = 'https://cdn.shopify.com/s/files/1/0106/7961/5524/files/bluegreendark_texture.png?v=1749811655';
+
+    textureImages['red_light_medium'] = 'https://cdn.shopify.com/s/files/1/0106/7961/5524/files/redlightmedium_texture.png?v=1749811656';
+
+    textureImages['blue_green_light'] = 'https://cdn.shopify.com/s/files/1/0106/7961/5524/files/bluegreenlight_texture.png?v=1749811655';
+
+    textureImages['red_yellow_light'] = 'https://cdn.shopify.com/s/files/1/0106/7961/5524/files/redyellowlight_texture.png?v=1749811656';
+
+    textureImages['light_medium_pink'] = 'https://cdn.shopify.com/s/files/1/0106/7961/5524/files/lightmediumpink_texture.png?v=1749811656';
+
+    
+
+    console.log('Production textures loaded:', Object.keys(textureImages).length, 'texture images');
+
+    updatePreview();
+
+}
+
+
+
+// Initialize the app
+
+function init() {
+
+    setupEventListeners();
+
+    loadProductionImages();
+
+    updatePreview();
+
+    updatePrice();
+
+    updateColorOverlay();
+
+    updateOverlayStyle();
+
+}
+
+
+
+// Set up event listeners
+
+function setupEventListeners() {
+
+    document.querySelectorAll('.option-btn').forEach(btn => {
+
+        btn.addEventListener('click', handleOptionClick);
+
+    });
+
+    
+
+    document.addEventListener('keydown', function(e) {
+
+        if (e.key === 'Escape') {
+
+            closeQuickBuyDrawer();
+
+        }
+
+    });
+
+    
+
+    setTimeout(() => {
+
+        const sizes = ['xs', 's', 'm', 'l', 'xl'];
+
+        sizes.forEach(size => {
+
+            const input = document.getElementById(`qty-${size}`);
+
+            if (input) {
+
+                input.addEventListener('input', updateTotalQuantity);
+
+            }
+
+        });
+
+    }, 100);
+
+}
+
+
+
+// Handle option button clicks
+
+function handleOptionClick(e) {
+
+    const option = e.target.dataset.option;
+
+    const value = e.target.dataset.value;
+
+    
+
+    currentSelections[option] = value;
+
+    
+
+    document.querySelectorAll(`[data-option="${option}"]`).forEach(btn => {
+
+        btn.classList.remove('selected');
+
+    });
+
+    e.target.classList.add('selected');
+
+    
+
+    updatePreview();
+
+    updatePrice();
+
+    updateColorOverlay();
+
+}
+
+
+
+// Update color overlay
+
+function updateColorOverlay() {
+
+    const colorKey = currentSelections.color;
+
+    const textureBackground = document.getElementById('textureBackground');
+
+    const maskedTexture = document.getElementById('maskedTexture');
+
+    
+
+    if (textureImages[colorKey]) {
+
+        const textureUrl = textureImages[colorKey];
+
+        textureBackground.style.backgroundImage = `url(${textureUrl})`;
+
+        maskedTexture.style.backgroundImage = `url(${textureUrl})`;
+
+    }
+
+}
+
+
+
+// FIXED: Update the preview image
+
+function updatePreview() {
+
+    const suffix = getOptionSuffix(currentSelections.hem, currentSelections.cuff, currentSelections.slits);
+
+    const paddedSuffix = suffix.toString().padStart(2, '0');
+
+    const imageFileName = `${currentSelections.length}_${currentSelections.sleeve}_${currentSelections.style}_${currentSelections.collar}-${paddedSuffix}`;
+
+    const imageUrl = `https://cdn.shopify.com/s/files/1/0106/7961/5524/files/${imageFileName}.png`;
+
+    const colorKey = currentSelections.color;
+
+    
+
+    const sweaterOutline = document.getElementById('sweaterOutline');
+
+    const placeholder = document.getElementById('imagePlaceholder');
+
+    const textureLayer = document.getElementById('textureLayer');
+
+    const textureBackground = document.getElementById('textureBackground');
+
+    const maskedTexture = document.getElementById('maskedTexture');
+
+    
+
+    sweaterOutline.style.display = 'none';
+
+    placeholder.style.display = 'block';
+
+    placeholder.innerHTML = `
+
+        <p>Loading...</p>
+
+        <p style="font-size: 0.75rem; margin-top: 0.5rem; font-family: monospace;">${imageFileName}.png</p>
+
+    `;
+
+    
+
+    let sweaterLoaded = false;
+
+    let textureLoaded = false;
+
+    
+
+    // FIXED: Properly structured showPreviewWhenReady function
+
+    function showPreviewWhenReady() {
+
+        if (sweaterLoaded && textureLoaded) {
+
+            sweaterOutline.style.display = 'block';
+
+            placeholder.style.display = 'none';
+
+            
+
+            if (textureImages[colorKey]) {
+
+                const textureUrl = textureImages[colorKey];
+
+                textureBackground.style.backgroundImage = `url(${textureUrl})`;
+
+                maskedTexture.style.backgroundImage = `url(${textureUrl})`;
+
+                
+
+                textureLayer.style.maskImage = `url(${imageUrl})`;
+
+                textureLayer.style.webkitMaskImage = `url(${imageUrl})`;
+
+                textureLayer.style.maskSize = 'contain';
+
+                textureLayer.style.webkitMaskSize = 'contain';
+
+                textureLayer.style.maskRepeat = 'no-repeat';
+
+                textureLayer.style.webkitMaskRepeat = 'no-repeat';
+
+                textureLayer.style.maskPosition = 'center center';
+
+                textureLayer.style.webkitMaskPosition = 'center center';
+
+            }
+
+            
+
+            updateOverlayStyle();
+
+            console.log('✅ Both images loaded - preview ready:', imageFileName);
+
+            
+
+            // iPad reflow fix - PROPERLY PLACED
+
+            setTimeout(() => {
+
+                const outline = document.getElementById('sweaterOutline');
+
+                if (outline) {
+
+                    outline.style.transform = 'scale(1.001)';
+
+                    setTimeout(() => {
+
+                        outline.style.transform = 'scale(1)';
+
+                    }, 50);
+
+                }
+
+            }, 100);
+
+        }
+
+    }
+
+    
+
+    // Load sweater outline
+
+    const sweaterImg = new Image();
+
+    sweaterImg.onload = function() {
+
+        sweaterLoaded = true;
+
+        sweaterOutline.src = imageUrl;
+
+        showPreviewWhenReady();
+
+    };
+
+    sweaterImg.onerror = function() {
+
+        console.log('❌ Sweater image failed to load:', imageFileName);
+
+        placeholder.innerHTML = `
+
+            <p>Image not found:</p>
+
+            <p style="font-size: 0.75rem; margin-top: 0.5rem; font-family: monospace;">${imageFileName}.png</p>
+
+        `;
+
+    };
+
+    sweaterImg.src = imageUrl;
+
+    
+
+    // Load texture
+
+    if (textureImages[colorKey]) {
+
+        const textureImg = new Image();
+
+        textureImg.onload = function() {
+
+            textureLoaded = true;
+
+            showPreviewWhenReady();
+
+        };
+
+        textureImg.onerror = function() {
+
+            textureLoaded = true;
+
+            showPreviewWhenReady();
+
+        };
+
+        textureImg.src = textureImages[colorKey];
+
+    } else {
+
+        textureLoaded = true;
+
+        showPreviewWhenReady();
+
+    }
+
+}
+
+
+
+// Update overlay style
+
+function updateOverlayStyle() {
+
+    const textureBackground = document.getElementById('textureBackground');
+
+    const textureLayer = document.getElementById('textureLayer');
+
+    const sweaterOutline = document.getElementById('sweaterOutline');
+
+    
+
+    if (!textureLayer || !textureBackground) return;
+
+    
+
+    const blendMode = 'multiply';
+
+    const opacity = 1.0;
+
+    const outlineOpacity = 1.0;
+
+    const textureScale = 475;
+
+    
+
+    textureBackground.style.mixBlendMode = blendMode;
+
+    textureBackground.style.opacity = opacity;
+
+    textureLayer.style.opacity = opacity;
+
+    
+
+    textureBackground.style.backgroundSize = `${textureScale}px auto`;
+
+    const maskedTexture = document.getElementById('maskedTexture');
+
+    if (maskedTexture) {
+
+        maskedTexture.style.backgroundSize = `${textureScale}px auto`;
+
+    }
+
+    
+
+    const currentColor = currentSelections.color;
+
+    if (currentColor === 'blue_green_dark') {
+
+        sweaterOutline.style.opacity = 0;
+
+    } else {
+
+        sweaterOutline.style.opacity = outlineOpacity;
+
+    }
+
+    
+
+    textureBackground.style.display = 'none';
+
+    textureLayer.style.display = 'block';
+
+}
+
+
+
+// Get price based on combination
+
+function getCombinationPrice(length, sleeve, style, collar) {
+
+    const combinationKey = `${length}_${sleeve}_${style}_${collar}`;
+
+    
+
+    const priceMap = {
+
+        'cropped_short_sweater_crew': 94.20,
+
+        'cropped_long_sweater_crew': 100.40,
+
+        'normal_short_sweater_crew': 104.20,
+
+        'cropped_short_cardigan_crew': 111.80,
+
+        'normal_long_sweater_crew': 110.40,
+
+        'cropped_short_sweater_polo': 104.70,
+
+        'normal_short_sweater_polo': 114.70,
+
+        'cropped_long_cardigan_crew': 117.90,
+
+        'cropped_long_sweater_polo': 110.90,
+
+        'cropped_short_cardigan_polo': 122.30,
+
+        'normal_long_sweater_polo': 120.90,
+
+        'cropped_long_cardigan_polo': 128.40,
+
+        'normal_short_cardigan_crew': 121.80,
+
+        'normal_short_cardigan_polo': 132.30,
+
+        'normal_long_cardigan_polo': 138.40,
+
+        'normal_long_cardigan_crew': 127.90
+
+    };
+
+    
+
+    return priceMap[combinationKey] || 94.20;
+
+}
+
+
+
+// Update price calculation
+
+function updatePrice() {
+
+    const totalPrice = getCombinationPrice(
+
+        currentSelections.length,
+
+        currentSelections.sleeve, 
+
+        currentSelections.style,
+
+        currentSelections.collar
+
+    );
+
+    
+
+    document.getElementById('priceDisplay').textContent = `€${totalPrice.toFixed(2)}`;
+
+}
+
+
+
+// Quick Buy Drawer Functions
+
+function openQuickBuyDrawer() {
+
+    updateConfigSummary();
+
+    document.getElementById('quickBuyDrawer').classList.add('open');
+
+    document.body.style.overflow = 'hidden';
+
+    
+
+    setTimeout(() => {
+
+        updateTotalQuantity();
+
+    }, 100);
+
+}
+
+
+
+function closeQuickBuyDrawer() {
+
+    document.getElementById('quickBuyDrawer').classList.remove('open');
+
+    document.body.style.overflow = '';
+
+}
+
+
+
+function updateConfigSummary() {
+
+    const summary = document.getElementById('configSummary');
+
+    const price = document.getElementById('configPrice');
+
+    
+
+    const totalPrice = getCombinationPrice(
+
+        currentSelections.length,
+
+        currentSelections.sleeve, 
+
+        currentSelections.style,
+
+        currentSelections.collar
+
+    );
+
+    
+
+    summary.innerHTML = `
+
+        <div><strong>Length:</strong> ${currentSelections.length}</div>
+
+        <div><strong>Sleeve:</strong> ${currentSelections.sleeve}</div>
+
+        <div><strong>Style:</strong> ${currentSelections.style}</div>
+
+        <div><strong>Collar:</strong> ${currentSelections.collar}</div>
+
+        <div><strong>Hem:</strong> ${currentSelections.hem}</div>
+
+        <div><strong>Cuff:</strong> ${currentSelections.cuff}</div>
+
+        <div><strong>Arms Slits:</strong> ${currentSelections.slits}</div>
+
+        <div><strong>Color:</strong> ${currentSelections.color.replace(/_/g, ' ')}</div>
+
+    `;
+
+    
+
+    price.textContent = `€${totalPrice.toFixed(2)} per piece`;
+
+}
+
+
+
+function changeQuantity(size, change) {
+
+    const input = document.getElementById(`qty-${size}`);
+
+    const currentValue = parseInt(input.value) || 0;
+
+    const newValue = Math.max(0, currentValue + change);
+
+    
+
+    input.value = newValue;
+
+    updateTotalQuantity();
+
+}
+
+
+
+function updateTotalQuantity() {
+
+    const sizes = ['xs', 's', 'm', 'l', 'xl'];
+
+    let total = 0;
+
+    
+
+    sizes.forEach(size => {
+
+        const input = document.getElementById(`qty-${size}`);
+
+        if (input) {
+
+            const qty = parseInt(input.value) || 0;
+
+            total += qty;
+
+        }
+
+    });
+
+    
+
+    const totalElement = document.getElementById('totalQuantity');
+
+    if (totalElement) {
+
+        totalElement.textContent = total;
+
+    }
+
+}
+
+
+
+function submitOrder() {
+
+    const customerName = document.getElementById('customerName').value.trim();
+
+    const customerEmail = document.getElementById('customerEmail').value.trim();
+
+    
+
+    if (!customerName) {
+
+        alert('Please enter a customer or company name.');
+
+        return;
+
+    }
+
+    
+
+    const quantities = {};
+
+    const sizes = ['xs', 's', 'm', 'l', 'xl'];
+
+    let totalQty = 0;
+
+    
+
+    sizes.forEach(size => {
+
+        const qty = parseInt(document.getElementById(`qty-${size}`).value) || 0;
+
+        if (qty > 0) {
+
+            quantities[size.toUpperCase()] = qty;
+
+            totalQty += qty;
+
+        }
+
+    });
+
+    
+
+    if (totalQty === 0) {
+
+        alert('Please select at least one item.');
+
+        return;
+
+    }
+
+    
+
+    const orderData = {
+
+        customer_name: customerName,
+
+        customer_email: customerEmail,
+
+        configuration: {
+
+            length: currentSelections.length,
+
+            sleeve: currentSelections.sleeve,
+
+            style: currentSelections.style,
+
+            collar: currentSelections.collar,
+
+            hem: currentSelections.hem,
+
+            cuff: currentSelections.cuff,
+
+            arms_slits: currentSelections.slits,
+
+            color: currentSelections.color
+
+        },
+
+        quantities: quantities,
+
+        total_pieces: totalQty,
+
+        unit_price: getCombinationPrice(
+
+            currentSelections.length,
+
+            currentSelections.sleeve, 
+
+            currentSelections.style,
+
+            currentSelections.collar
+
+        ),
+
+        notes: document.getElementById('orderNotes').value.trim(),
+
+        timestamp: new Date().toISOString()
+
+    };
+
+    
+
+    console.log('Order Data:', orderData);
+
+    submitOrderWithShopify(orderData);
+
+}
+
+async function submitOrderWithShopify(orderData) {
+
+    try {
+
+        console.log('🤖 Creating draft order automatically...');
+
+        
+
+        const diyCode = getCurrentDIYCode();
+
+        const wxyzCode = getWXYZProperties();
+
+        const product = SHOPIFY_DIY_PRODUCTS[diyCode];
+
+        
+
+        if (!product || !product.id) {
+
+            throw new Error('Product configuration not found');
+
+        }
+
+        
+
+        // Show loading state
+
+        const submitBtn = document.querySelector('.submit-btn');
+
+        const originalText = submitBtn.textContent;
+
+        submitBtn.textContent = 'Creating Draft Order...';
+
+        submitBtn.disabled = true;
+
+        
+
+        try {
+
+            // Prepare data for serverless function
+
+            const apiPayload = {
+
+                diyCode,
+
+                wxyzCode,
+
+                product,
+
+                customer_name: orderData.customer_name,
+
+                customer_email: orderData.customer_email,
+
+                configuration: orderData.configuration,
+
+                quantities: orderData.quantities,
+
+                total_pieces: orderData.total_pieces,
+
+                unit_price: orderData.unit_price,
+
+                notes: orderData.notes,
+
+                timestamp: orderData.timestamp
+
+            };
+
+            
+
+            // Call Netlify function
+
+            const response = await fetch('/.netlify/functions/create-draft-order', {
+
+                method: 'POST',
+
+                headers: {
+
+                    'Content-Type': 'application/json'
+
+                },
+
+                body: JSON.stringify(apiPayload)
+
+            });
+
+            
+
+            const result = await response.json();
+
+            
+
+            // Restore button
+
+            submitBtn.textContent = originalText;
+
+            submitBtn.disabled = false;
+
+            
+
+            if (result.success) {
+
+                const draftOrder = result.draftOrder;
+
+                const totalValue = orderData.total_pieces * orderData.unit_price;
+
+                
+
+                alert(`🎉 Draft Order Created Successfully!
+
+
+
+Order #: ${draftOrder.name}
+
+Customer: ${orderData.customer_name}
+
+DIY Code: ${diyCode}-${wxyzCode}
+
+Total: ${orderData.total_pieces} pieces (€${totalValue.toFixed(2)})
+
+
+
+✅ Draft order created in Shopify Admin
+
+📧 You can now send an invoice to the customer
+
+🔗 Draft Order ID: ${draftOrder.id}`);
+
+                
+
+                closeQuickBuyDrawer();
+
+                resetForm();
+
+                return true;
+
+                
+
+            } else {
+
+                throw new Error(result.error || 'Draft order creation failed');
+
+            }
+
+            
+
+        } catch (apiError) {
+
+            console.log('⚠️ Automated draft order failed, using contact form fallback');
+
+            
+
+            // Restore button and fall back to contact form
+
+            submitBtn.textContent = originalText;
+
+            submitBtn.disabled = false;
+
+            
+
+            return submitDraftOrderViaContact(orderData, diyCode, wxyzCode);
+
+        }
+
+        
+
+    } catch (error) {
+
+        console.error('❌ Order submission failed:', error);
+
+        
+
+        // Restore button state
+
+        const submitBtn = document.querySelector('.submit-btn');
+
+        submitBtn.textContent = 'Submit Order';
+
+        submitBtn.disabled = false;
+
+        
+
+        alert('Unable to submit order. Please try again or contact hello@wasteyarnproject.com');
+
+        return false;
+
+    }
+
+}
+
+
+
+// Your existing submitDraftOrderViaContact function continues here...
+
+
+
+// Enhanced contact form submission with draft order details
+
+function submitDraftOrderViaContact(orderData, diyCode, wxyzCode) {
+
+    const formData = new FormData();
+
+    
+
+    formData.append('form_type', 'contact');
+
+    formData.append('utf8', '✓');
+
+    formData.append('contact[name]', orderData.customer_name);
+
+    formData.append('contact[email]', orderData.customer_email);
+
+    
+
+    const message = `
+
+🛒 DRAFT ORDER REQUEST - Custom DIY Sweater
+
+
+
+CUSTOMER INFORMATION:
+
+Name: ${orderData.customer_name}
+
+Email: ${orderData.customer_email}
+
+
+
+DIY CONFIGURATION:
+
+Code: ${diyCode}-${wxyzCode}
+
+- Length: ${orderData.configuration.length}
+
+- Sleeve: ${orderData.configuration.sleeve}  
+
+- Style: ${orderData.configuration.style}
+
+- Collar: ${orderData.configuration.collar}
+
+- Hem: ${orderData.configuration.hem}
+
+- Cuff: ${orderData.configuration.cuff}
+
+- Arms Slits: ${orderData.configuration.arms_slits}
+
+- Color: ${orderData.configuration.color.replace(/_/g, ' ')}
+
+
+
+ORDER DETAILS:
+
+${Object.entries(orderData.quantities).map(([size, qty]) => `- Size ${size}: ${qty} pieces`).join('\n')}
+
+
+
+Total Pieces: ${orderData.total_pieces}
+
+Unit Price: €${orderData.unit_price.toFixed(2)}
+
+Total Value: €${(orderData.total_pieces * orderData.unit_price).toFixed(2)}
+
+
+
+SHOPIFY PRODUCT ID: ${SHOPIFY_DIY_PRODUCTS[diyCode].id}
+
+
+
+NOTES: ${orderData.notes || 'None'}
+
+
+
+SUBMITTED: ${new Date(orderData.timestamp).toLocaleString()}
+
+
+
+---
+
+🔧 ADMIN INSTRUCTIONS:
+
+1. Create draft order in Shopify Admin
+
+2. Use Product ID: ${SHOPIFY_DIY_PRODUCTS[diyCode].id}
+
+3. Add line item properties from DIY configuration above
+
+4. Send invoice to customer: ${orderData.customer_email}
+
+    `.trim();
+
+    
+
+    formData.append('contact[body]', message);
+
+    
+
+    console.log('📧 Submitting enhanced draft order request...');
+
+    
+
+    return fetch('/contact', {
+
+        method: 'POST',
+
+        body: formData
+
+    })
+
+    .then(response => {
+
+        if (response.ok) {
+
+            return response.text();
+
+        } else {
+
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+
+        }
+
+    })
+
+    .then(data => {
+
+        alert(`Draft Order Request Submitted! 🎉\n\nCustomer: ${orderData.customer_name}\nDIY Code: ${diyCode}-${wxyzCode}\nTotal: ${orderData.total_pieces} pieces\n\nA draft order will be created in Shopify Admin and an invoice sent to the customer.`);
+
+        closeQuickBuyDrawer();
+
+        resetForm();
+
+        return true;
+
+    })
+
+    .catch(error => {
+
+        console.error('❌ Draft order request failed:', error);
+
+        
+
+        const subject = encodeURIComponent(`DRAFT ORDER - Custom Sweater - ${orderData.customer_name}`);
+
+        const body = encodeURIComponent(message);
+
+        const customerEmail = orderData.customer_email || '';
+
+        const ccParam = customerEmail ? `&cc=${encodeURIComponent(customerEmail)}` : '';
+
+        const mailtoLink = `mailto:hello@wasteyarnproject.com?subject=${subject}${ccParam}&body=${body}`;
+
+        
+
+        const useEmailFallback = confirm(
+
+            'Draft order request failed. Would you like to open your email client instead?'
+
+        );
+
+        
+
+        if (useEmailFallback) {
+
+            window.location.href = mailtoLink;
+
+            closeQuickBuyDrawer();
+
+            resetForm();
+
+        }
+
+        return false;
+
+    });
+
+}
+
+
+
+// FIXED: Fallback contact form submission
+
+function submitToShopifyContact(orderData) {
+
+    const formData = new FormData();
+
+    
+
+    formData.append('form_type', 'contact');
+
+    formData.append('utf8', '✓');
+
+    formData.append('contact[name]', orderData.customer_name);
+
+    formData.append('contact[email]', orderData.customer_email);
+
+    
+
+    const message = `
+
+CUSTOM SWEATER ORDER
+
+
+
+Customer: ${orderData.customer_name}
+
+Email: ${orderData.customer_email}
+
+
+
+CONFIGURATION:
+
+- Length: ${orderData.configuration.length}
+
+- Sleeve: ${orderData.configuration.sleeve}  
+
+- Style: ${orderData.configuration.style}
+
+- Collar: ${orderData.configuration.collar}
+
+- Hem: ${orderData.configuration.hem}
+
+- Cuff: ${orderData.configuration.cuff}
+
+- Arms Slits: ${orderData.configuration.arms_slits}
+
+- Color: ${orderData.configuration.color.replace(/_/g, ' ')}
+
+
+
+QUANTITIES:
+
+${Object.entries(orderData.quantities).map(([size, qty]) => `- Size ${size}: ${qty} pieces`).join('\n')}
+
+
+
+Total Pieces: ${orderData.total_pieces}
+
+Unit Price: €${orderData.unit_price.toFixed(2)}
+
+Total Value: €${(orderData.total_pieces * orderData.unit_price).toFixed(2)}
+
+
+
+Notes: ${orderData.notes || 'None'}
+
+
+
+Submitted: ${new Date(orderData.timestamp).toLocaleString()}
+
+    `.trim();
+
+    
+
+    formData.append('contact[body]', message);
+
+    
+
+    return fetch('/contact', {
+
+        method: 'POST',
+
+        body: formData
+
+    })
+
+    .then(response => {
+
+        if (response.ok) {
+
+            return response.text();
+
+        } else {
+
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+
+        }
+
+    })
+
+    .then(data => {
+
+        alert(`Order submitted successfully!\n\nCustomer: ${orderData.customer_name}\nTotal: ${orderData.total_pieces} pieces\n\nYou'll receive a confirmation email shortly.`);
+
+        closeQuickBuyDrawer();
+
+        resetForm();
+
+    })
+
+    .catch(error => {
+
+        console.error('❌ Error details:', error);
+
+        
+
+        const subject = encodeURIComponent('Custom Sweater Order - ' + orderData.customer_name);
+
+        const body = encodeURIComponent(message);
+
+        const customerEmail = orderData.customer_email || '';
+
+        const ccParam = customerEmail ? `&cc=${encodeURIComponent(customerEmail)}` : '';
+
+        const mailtoLink = `mailto:hello@wasteyarnproject.com?subject=${subject}${ccParam}&body=${body}`;
+
+        
+
+        const useEmailFallback = confirm(
+
+            'There was an issue with the automatic submission.\n\nWould you like to open your email client to send the order?\n\nThe order details will be pre-filled in the email.'
+
+        );
+
+        
+
+        if (useEmailFallback) {
+
+            window.location.href = mailtoLink;
+
+            closeQuickBuyDrawer();
+
+            resetForm();
+
+        }
+
+    });
+
+}
+
+
+
+function resetForm() {
+
+    document.getElementById('customerName').value = '';
+
+    document.getElementById('customerEmail').value = '';
+
+    document.getElementById('orderNotes').value = '';
+
+    
+
+    const sizes = ['xs', 's', 'm', 'l', 'xl'];
+
+    sizes.forEach(size => {
+
+        document.getElementById(`qty-${size}`).value = '0';
+
+    });
+
+    
+
+    updateTotalQuantity();
+
+}
+
+
+
+// Testing functions
+
+function testShopifyIntegration() {
+
+    const diyCode = getCurrentDIYCode();
+
+    const wxyzCode = getWXYZProperties();
+
+    const product = SHOPIFY_DIY_PRODUCTS[diyCode];
+
+    
+
+    console.log('🧪 Testing Shopify Integration:');
+
+    console.log(`📍 Current DIY Code: ${diyCode}`);
+
+    console.log(`🎨 Current WXYZ Code: ${wxyzCode}`);
+
+    console.log(`💰 Price: €${product?.price || 'Unknown'}`);
+
+    console.log(`🆔 Product ID: ${product?.id || 'Not set'}`);
+
+    console.log(`✅ Ready: ${product?.id ? 'Yes' : 'No - need to set Product ID'}`);
+
+}
+
+
+
+// Initialize when DOM is ready
+
+if (document.readyState === 'loading') {
+
+    document.addEventListener('DOMContentLoaded', init);
+
+} else {
+
+    init();
+
+}
+
+
+
+// Initialize message
+
+console.log('🎯 DIY Sweater Builder with Draft Orders Ready!');
+
+console.log('🧪 Test integration: testShopifyIntegration()');
+
+</script>
+
+
+
+
+
+</body>
