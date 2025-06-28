@@ -80,6 +80,9 @@ async function createShopifyDraftOrder(orderData, domain, accessToken) {
     // Prepare line items for each size with quantity > 0
     const lineItems = [];
     
+    // Get the product info for this DIY code
+    const productInfo = getProductInfo(diyCode);
+    
     Object.entries(orderData.quantities).forEach(([size, quantity]) => {
         if (quantity > 0) {
             lineItems.push({
@@ -87,8 +90,10 @@ async function createShopifyDraftOrder(orderData, domain, accessToken) {
                 price: unitPrice.toString(),
                 quantity: parseInt(quantity),
                 taxable: true,
+                product_id: productInfo.id, // ← Reference your existing product
                 properties: [
                     { name: 'DIY Code', value: `${diyCode}-${wxyzCode}` },
+                    { name: 'Product ID', value: productInfo.id || 'Custom' },
                     { name: 'Size', value: size.toUpperCase() },
                     { name: 'Length', value: orderData.configuration.length },
                     { name: 'Sleeve', value: orderData.configuration.sleeve },
@@ -186,4 +191,28 @@ function calculatePrice(configuration) {
     };
     
     return priceMap[combinationKey] || 94.20;
+}
+
+// Product mapping function - Complete list
+function getProductInfo(diyCode) {
+    const productMap = {
+        'DIY1111': { id: '9552915333448', price: 110.40 }, // Normal, Long, Sweater, Crew
+        'DIY1112': { id: '9552915398984', price: 120.90 }, // Normal, Long, Sweater, Polo
+        'DIY1121': { id: '9552915464520', price: 127.90 }, // Normal, Long, Cardigan, Crew
+        'DIY1122': { id: '9552915530056', price: 138.40 }, // Normal, Long, Cardigan, Polo
+        'DIY1211': { id: '9552915628360', price: 104.20 }, // Normal, Short, Sweater, Crew
+        'DIY1212': { id: '9552915726664', price: 114.70 }, // Normal, Short, Sweater, Polo
+        'DIY1221': { id: '9552915792200', price: 121.80 }, // Normal, Short, Cardigan, Crew
+        'DIY1222': { id: '9552915890504', price: 132.30 }, // Normal, Short, Cardigan, Polo
+        'DIY2111': { id: '9552915956040', price: 100.40 }, // Cropped, Long, Sweater, Crew
+        'DIY2112': { id: '9552916021576', price: 110.90 }, // Cropped, Long, Sweater, Polo
+        'DIY2121': { id: '9552916087112', price: 117.90 }, // Cropped, Long, Cardigan, Crew
+        'DIY2122': { id: '9552916119880', price: 128.40 }, // Cropped, Long, Cardigan, Polo
+        'DIY2211': { id: '9552916218184', price: 94.20 },  // Cropped, Short, Sweater, Crew
+        'DIY2212': { id: '9552916283720', price: 104.70 }, // Cropped, Short, Sweater, Polo
+        'DIY2221': { id: '9552916316488', price: 111.80 }, // Cropped, Short, Cardigan, Crew
+        'DIY2222': { id: '9552916414792', price: 122.30 }  // Cropped, Short, Cardigan, Polo
+    };
+    
+    return productMap[diyCode] || { id: null, price: 94.20 };
 }
