@@ -72,16 +72,21 @@ exports.handler = async (event, context) => {
 async function createShopifyDraftOrder(orderData, domain, accessToken) {
     console.log('🛒 Creating draft order for:', orderData.customer_name);
     
-    const { diyCode, wxyzCode, product } = orderData;
+    const { diyCode, wxyzCode } = orderData;
     
-    // Prepare line items for each size
+    // Get unit price from your pricing logic
+    const unitPrice = calculatePrice(orderData.configuration);
+    
+    // Prepare line items for each size with quantity > 0
     const lineItems = [];
     
     Object.entries(orderData.quantities).forEach(([size, quantity]) => {
         if (quantity > 0) {
             lineItems.push({
-                variant_id: product.variant_id,
+                title: `Custom DIY Sweater - Size ${size.toUpperCase()}`,
+                price: unitPrice.toString(),
                 quantity: parseInt(quantity),
+                taxable: true,
                 properties: [
                     { name: 'DIY Code', value: `${diyCode}-${wxyzCode}` },
                     { name: 'Size', value: size.toUpperCase() },
@@ -99,6 +104,10 @@ async function createShopifyDraftOrder(orderData, domain, accessToken) {
             });
         }
     });
+    
+    if (lineItems.length === 0) {
+        throw new Error('No items with quantity > 0 found');
+    }
     
     // Create customer object
     const customerName = orderData.customer_name || 'Custom Order';
@@ -118,18 +127,19 @@ async function createShopifyDraftOrder(orderData, domain, accessToken) {
             use_customer_default_address: false,
             note: `Custom DIY Sweater Order - ${diyCode}-${wxyzCode}\n\nConfiguration:\n${JSON.stringify(orderData.configuration, null, 2)}\n\nCustomer Notes: ${orderData.notes || 'None'}`,
             tags: [
-    `DIY-${diyCode}`, 
-    `Config-${wxyzCode}`, 
-    'Custom-Sweater', 
-    'Microsite-Order',
-    `Total-${orderData.total_pieces}-pieces`
-].join(','),
+                `DIY-${diyCode}`, 
+                `Config-${wxyzCode}`, 
+                'Custom-Sweater', 
+                'Microsite-Order',
+                `Total-${orderData.total_pieces}-pieces`
+            ].join(','),
             invoice_sent_at: null, // Don't auto-send invoice
             status: 'open'
         }
     };
     
     console.log('📤 Sending to Shopify API...');
+    console.log('Line items:', lineItems.length);
     
     // Make API request to Shopify
     const response = await fetch(`https://${domain}/admin/api/2024-01/draft_orders.json`, {
@@ -150,4 +160,30 @@ async function createShopifyDraftOrder(orderData, domain, accessToken) {
     
     const result = JSON.parse(responseText);
     return result.draft_order;
+}
+
+// Price calculation function - matches your frontend logic
+function calculatePrice(configuration) {
+    const combinationKey = `${configuration.length.toLowerCase()}_${configuration.sleeve.toLowerCase()}_${configuration.style.toLowerCase()}_${configuration.collar.toLowerCase()}`;
+    
+    const priceMap = {
+        'normal_long_sweater_crew': 110.40,
+        'normal_long_sweater_polo': 120.90,
+        'normal_long_cardigan_crew': 127.90,
+        'normal_long_cardigan_polo': 138.40,
+        'normal_short_sweater_crew': 104.20,
+        'normal_short_sweater_polo': 114.70,
+        'normal_short_cardigan_crew': 121.80,
+        'normal_short_cardigan_polo': 132.30,
+        'cropped_long_sweater_crew': 100.40,
+        'cropped_long_sweater_polo': 110.90,
+        'cropped_long_cardigan_crew': 117.90,
+        'cropped_long_cardigan_polo': 128.40,
+        'cropped_short_sweater_crew': 94.20,
+        'cropped_short_sweater_polo': 104.70,
+        'cropped_short_cardigan_crew': 111.80,
+        'cropped_short_cardigan_polo': 122.30
+    };
+    
+    return priceMap[combinationKey] || 94.20;
 }
