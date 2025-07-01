@@ -169,30 +169,30 @@ async function createShopifyDraftOrder(orderData, domain, accessToken) {
     return result.draft_order;
 }
 
-// Price calculation function - matches your frontend logic
+// Price calculation function - matches frontend with UPDATED PRICES
 function calculatePrice(configuration) {
     const combinationKey = `${configuration.length.toLowerCase()}_${configuration.sleeve.toLowerCase()}_${configuration.style.toLowerCase()}_${configuration.collar.toLowerCase()}`;
     
     const priceMap = {
-        'normal_long_sweater_crew': 110.40,
-        'normal_long_sweater_polo': 120.90,
-        'normal_long_cardigan_crew': 127.90,
-        'normal_long_cardigan_polo': 138.40,
-        'normal_short_sweater_crew': 104.20,
-        'normal_short_sweater_polo': 114.70,
-        'normal_short_cardigan_crew': 121.80,
-        'normal_short_cardigan_polo': 132.30,
-        'cropped_long_sweater_crew': 100.40,
-        'cropped_long_sweater_polo': 110.90,
-        'cropped_long_cardigan_crew': 117.90,
-        'cropped_long_cardigan_polo': 128.40,
-        'cropped_short_sweater_crew': 94.20,
-        'cropped_short_sweater_polo': 104.70,
-        'cropped_short_cardigan_crew': 111.80,
-        'cropped_short_cardigan_polo': 122.30
+        'normal_long_sweater_crew': 130.00,   // DIY1111
+        'normal_long_sweater_polo': 141.00,   // DIY1112  
+        'normal_long_cardigan_crew': 148.00,  // DIY1121
+        'normal_long_cardigan_polo': 156.00,  // DIY1122
+        'normal_short_sweater_crew': 122.00,  // DIY1211
+        'normal_short_sweater_polo': 133.00,  // DIY1212
+        'normal_short_cardigan_crew': 141.00, // DIY1221
+        'normal_short_cardigan_polo': 152.00, // DIY1222
+        'cropped_long_sweater_crew': 119.00,  // DIY2111
+        'cropped_long_sweater_polo': 130.00,  // DIY2112
+        'cropped_long_cardigan_crew': 137.00, // DIY2121
+        'cropped_long_cardigan_polo': 148.00, // DIY2122
+        'cropped_short_sweater_crew': 111.00, // DIY2211
+        'cropped_short_sweater_polo': 122.00, // DIY2212
+        'cropped_short_cardigan_crew': 130.00, // DIY2221
+        'cropped_short_cardigan_polo': 141.00  // DIY2222
     };
     
-    return priceMap[combinationKey] || 94.20;
+    return priceMap[combinationKey] || 111.00;
 }
 
 // Product mapping function - Complete list with UPDATED PRICES
