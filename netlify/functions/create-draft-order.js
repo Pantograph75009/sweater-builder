@@ -39,6 +39,7 @@ exports.handler = async (event, context) => {
         }
         
         console.log('🔑 Using domain:', SHOPIFY_DOMAIN);
+        console.log('🏪 Order type:', orderData.isRetail ? 'RETAIL (Oslo)' : 'WHOLESALE');
         
         // Create the draft order
         const draftOrder = await createShopifyDraftOrder(orderData, SHOPIFY_DOMAIN, SHOPIFY_ACCESS_TOKEN);
@@ -73,15 +74,16 @@ async function createShopifyDraftOrder(orderData, domain, accessToken) {
     console.log('🛒 Creating draft order for:', orderData.customer_name);
     
     const { diyCode, wxyzCode } = orderData;
+    const isRetail = orderData.isRetail || false;
     
     // Get unit price from your pricing logic
-    const unitPrice = calculatePrice(orderData.configuration);
+    const unitPrice = calculatePrice(orderData.configuration, isRetail);
     
     // Prepare line items for each size with quantity > 0
     const lineItems = [];
     
     // Get the product info for this DIY code
-    const productInfo = getProductInfo(diyCode);
+    const productInfo = getProductInfo(diyCode, isRetail);
     
     Object.entries(orderData.quantities).forEach(([size, quantity]) => {
         if (quantity > 0) {
@@ -94,6 +96,7 @@ async function createShopifyDraftOrder(orderData, domain, accessToken) {
                 properties: [
                     { name: 'DIY Code', value: `${diyCode}-${wxyzCode}` },
                     { name: 'Product ID', value: productInfo.id || 'Custom' },
+                    { name: 'Order Type', value: isRetail ? 'RETAIL (Oslo)' : 'WHOLESALE' },
                     { name: 'Size', value: size.toUpperCase() },
                     { name: 'Length', value: orderData.configuration.length },
                     { name: 'Sleeve', value: orderData.configuration.sleeve },
@@ -130,12 +133,13 @@ async function createShopifyDraftOrder(orderData, domain, accessToken) {
             },
             line_items: lineItems,
             use_customer_default_address: false,
-            note: `Custom DIY Sweater Order - ${diyCode}-${wxyzCode}\n\nConfiguration:\n${JSON.stringify(orderData.configuration, null, 2)}\n\nCustomer Notes: ${orderData.notes || 'None'}`,
+            note: `Custom DIY Sweater Order - ${diyCode}-${wxyzCode}\nOrder Type: ${isRetail ? 'RETAIL (Oslo)' : 'WHOLESALE'}\n\nConfiguration:\n${JSON.stringify(orderData.configuration, null, 2)}\n\nCustomer Notes: ${orderData.notes || 'None'}`,
             tags: [
                 `DIY-${diyCode}`, 
                 `Config-${wxyzCode}`, 
                 'Custom-Sweater', 
                 'Microsite-Order',
+                isRetail ? 'RETAIL-Oslo' : 'WHOLESALE',
                 `Total-${orderData.total_pieces}-pieces`
             ].join(','),
             invoice_sent_at: null, // Don't auto-send invoice
@@ -147,6 +151,7 @@ async function createShopifyDraftOrder(orderData, domain, accessToken) {
     
     console.log('📤 Sending to Shopify API...');
     console.log('Line items:', lineItems.length);
+    console.log('Unit price:', unitPrice, '(', isRetail ? 'RETAIL' : 'WHOLESALE', ')');
     
     // Make API request to Shopify
     const response = await fetch(`https://${domain}/admin/api/2024-01/draft_orders.json`, {
@@ -169,11 +174,12 @@ async function createShopifyDraftOrder(orderData, domain, accessToken) {
     return result.draft_order;
 }
 
-// Price calculation function - matches frontend with UPDATED PRICES
-function calculatePrice(configuration) {
+// Price calculation function - DUAL PRICING (wholesale vs retail)
+function calculatePrice(configuration, isRetail = false) {
     const combinationKey = `${configuration.length.toLowerCase()}_${configuration.sleeve.toLowerCase()}_${configuration.style.toLowerCase()}_${configuration.collar.toLowerCase()}`;
     
-    const priceMap = {
+    // WHOLESALE PRICES (original)
+    const wholesalePriceMap = {
         'normal_long_sweater_crew': 130.00,   // DIY1111
         'normal_long_sweater_polo': 141.00,   // DIY1112  
         'normal_long_cardigan_crew': 148.00,  // DIY1121
@@ -192,12 +198,36 @@ function calculatePrice(configuration) {
         'cropped_short_cardigan_polo': 141.00  // DIY2222
     };
     
-    return priceMap[combinationKey] || 111.00;
+    // RETAIL PRICES (Oslo)
+    const retailPriceMap = {
+        'normal_long_sweater_crew': 350.00,   // DIY1111
+        'normal_long_sweater_polo': 380.00,   // DIY1112  
+        'normal_long_cardigan_crew': 400.00,  // DIY1121
+        'normal_long_cardigan_polo': 420.00,  // DIY1122
+        'normal_short_sweater_crew': 330.00,  // DIY1211
+        'normal_short_sweater_polo': 360.00,  // DIY1212
+        'normal_short_cardigan_crew': 380.00, // DIY1221
+        'normal_short_cardigan_polo': 410.00, // DIY1222
+        'cropped_long_sweater_crew': 320.00,  // DIY2111
+        'cropped_long_sweater_polo': 350.00,  // DIY2112
+        'cropped_long_cardigan_crew': 370.00, // DIY2121
+        'cropped_long_cardigan_polo': 400.00, // DIY2122
+        'cropped_short_sweater_crew': 300.00, // DIY2211
+        'cropped_short_sweater_polo': 330.00, // DIY2212
+        'cropped_short_cardigan_crew': 350.00, // DIY2221
+        'cropped_short_cardigan_polo': 380.00  // DIY2222
+    };
+    
+    const priceMap = isRetail ? retailPriceMap : wholesalePriceMap;
+    const defaultPrice = isRetail ? 300.00 : 111.00;
+    
+    return priceMap[combinationKey] || defaultPrice;
 }
 
-// Product mapping function - Complete list with UPDATED PRICES
-function getProductInfo(diyCode) {
-    const productMap = {
+// Product mapping function - DUAL PRODUCTS (wholesale vs retail)
+function getProductInfo(diyCode, isRetail = false) {
+    // WHOLESALE PRODUCTS (original)
+    const wholesaleProductMap = {
         'DIY1111': { id: '9552915333448', price: 130.00 }, // Normal, Long, Sweater, Crew
         'DIY1112': { id: '9552915398984', price: 141.00 }, // Normal, Long, Sweater, Polo
         'DIY1121': { id: '9552915464520', price: 148.00 }, // Normal, Long, Cardigan, Crew
@@ -216,5 +246,28 @@ function getProductInfo(diyCode) {
         'DIY2222': { id: '9552916414792', price: 141.00 }  // Cropped, Short, Cardigan, Polo
     };
     
-    return productMap[diyCode] || { id: null, price: 111.00 };
+    // RETAIL PRODUCTS (Oslo)
+    const retailProductMap = {
+        'DIY1111': { id: '9624655036744', price: 350.00 }, // Normal, Long, Sweater, Crew
+        'DIY1112': { id: '9624655724872', price: 380.00 }, // Normal, Long, Sweater, Polo
+        'DIY1121': { id: '9624656609608', price: 400.00 }, // Normal, Long, Cardigan, Crew
+        'DIY1122': { id: '9624658280776', price: 420.00 }, // Normal, Long, Cardigan, Polo
+        'DIY1211': { id: '9624658903368', price: 330.00 }, // Normal, Short, Sweater, Crew
+        'DIY1212': { id: '9624659984712', price: 360.00 }, // Normal, Short, Sweater, Polo
+        'DIY1221': { id: '9624660672840', price: 380.00 }, // Normal, Short, Cardigan, Crew
+        'DIY1222': { id: '9624661360968', price: 410.00 }, // Normal, Short, Cardigan, Polo
+        'DIY2111': { id: '9624662049096', price: 320.00 }, // Cropped, Long, Sweater, Crew
+        'DIY2112': { id: '9624662638920', price: 350.00 }, // Cropped, Long, Sweater, Polo
+        'DIY2121': { id: '9624663458120', price: 370.00 }, // Cropped, Long, Cardigan, Crew
+        'DIY2122': { id: '9624664801608', price: 400.00 }, // Cropped, Long, Cardigan, Polo
+        'DIY2211': { id: '9624668012872', price: 300.00 }, // Cropped, Short, Sweater, Crew
+        'DIY2212': { id: '9624669356360', price: 330.00 }, // Cropped, Short, Sweater, Polo
+        'DIY2221': { id: '9624669913416', price: 350.00 }, // Cropped, Short, Cardigan, Crew
+        'DIY2222': { id: '9624671453512', price: 380.00 }  // Cropped, Short, Cardigan, Polo
+    };
+    
+    const productMap = isRetail ? retailProductMap : wholesaleProductMap;
+    const defaultProduct = isRetail ? { id: null, price: 300.00 } : { id: null, price: 111.00 };
+    
+    return productMap[diyCode] || defaultProduct;
 }
